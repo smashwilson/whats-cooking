@@ -1,0 +1,31 @@
+{
+  "name": "whats-cooking",
+  "version": "1.0.0",
+  "description": "See what pull requests were merged between two git revisions",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "lint": "tslint --config tslint.json --project tsconfig.json",
+    "prepare": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/smashwilson/whats-cooking.git"
+  },
+  "author": "Ash Wilson <smashwilson@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/smashwilson/whats-cooking/issues"
+  },
+  "homepage": "https://github.com/smashwilson/whats-cooking#readme",
+  "devDependencies": {
+    "tslint": "^5.11.0",
+    "typescript": "^2.9.2"
+  },
+  "dependencies": {
+    "@types/cli": "^0.11.19",
+    "chalk": "^2.4.1",
+    "cli": "^1.0.1"
+  }
+}
