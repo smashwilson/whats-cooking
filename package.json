@@ -2,12 +2,14 @@
   "name": "whats-cooking",
   "version": "1.0.0",
   "description": "See what pull requests were merged between two git revisions",
-  "main": "index.js",
+  "main": "build/index.js",
+  "bin": "build/index.js",
   "scripts": {
     "build": "tsc",
     "lint": "tslint --config tslint.json --project tsconfig.json",
     "prepare": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npm run build && node build/index.js"
   },
   "repository": {
     "type": "git",
@@ -25,7 +27,11 @@
   },
   "dependencies": {
     "@types/cli": "^0.11.19",
+    "@types/request": "^2.47.1",
+    "@types/request-promise-native": "^1.0.15",
     "chalk": "^2.4.1",
-    "cli": "^1.0.1"
+    "cli": "^1.0.1",
+    "request": "^2.87.0",
+    "request-promise-native": "^1.0.5"
   }
 }
