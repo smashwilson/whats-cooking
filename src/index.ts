@@ -104,7 +104,7 @@ class PullRequestEntry extends LogEntry {
   }
 
   toString() {
-    let s = `#${chalk.bold.green(this.num.toString())}`;
+    let s = `${chalk.gray(this.oid)} : #${chalk.bold.green(this.num.toString())}`;
     if (this.apiData !== null) {
       s += `: ${chalk.bold(this.apiData.title)}`
     } else {
@@ -140,7 +140,7 @@ class DirectCommitEntry extends LogEntry {
   }
 
   toString() {
-    let s = `${chalk.bold(this.summary)} @ ${chalk.gray(this.oid)}`
+    let s = `${chalk.gray(this.oid)} : ${chalk.bold(this.summary)}`
     s += this.refSuffix();
     return s;
   }
