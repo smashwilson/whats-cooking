@@ -1,6 +1,6 @@
 {
   "name": "@smashwilson/whats-cooking",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "See what pull requests were merged between two git revisions",
   "main": "build/index.js",
   "bin": "build/index.js",
