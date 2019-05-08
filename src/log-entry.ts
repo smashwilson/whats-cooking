@@ -3,14 +3,6 @@ export abstract class LogEntry {
     //
   }
 
-  public refSuffix(): string {
-    if (this.refs.length > 0) {
-      return ` (${this.refs.map((ref) => chalk.yellow(ref)).join(", ")})`;
-    } else {
-      return "";
-    }
-  }
-
   public abstract toString(): string;
 
   public addToQuery(_: string): string {
