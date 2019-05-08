@@ -81,11 +81,11 @@ abstract class LogEntry {
 
   public abstract toString(): string;
 
-  public addToQuery(_varName: string): string {
+  public addToQuery(_: string): string {
     return "";
   }
 
-  public acceptResponse(_result: any): void {
+  public acceptResponse(_: any): void {
     //
   }
 
