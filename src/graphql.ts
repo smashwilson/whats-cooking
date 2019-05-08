@@ -5,7 +5,9 @@ import request from "request-promise-native";
 
 export async function graphql(query: string, variables: {} = {}) {
   const singleLineQuery = query.replace(/\n\s*/g, " ").trim();
-  cli.debug(`Executing graphQL query:\n${util.inspect({query: singleLineQuery, variables}, {colors: true, depth: null})}`);
+  cli.debug(
+    `Executing graphQL query:\n${util.inspect({query: singleLineQuery, variables}, {colors: true, depth: null})}`,
+  );
   const response = await request({
     method: "POST",
     uri: "https://api.github.com/graphql",
