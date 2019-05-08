@@ -3,7 +3,9 @@ import chalk from "chalk";
 import {execFile, spawn} from "child_process";
 import cli from "cli";
 
+import {DirectCommitEntry} from "./direct-commit-entry";
 import {graphql} from "./graphql";
+import {PullRequestEntry} from "./pull-request-entry";
 
 cli.enable("version", "status");
 
@@ -64,86 +66,6 @@ function open(...args: string[]) {
       resolve();
     });
   });
-}
-
-abstract class LogEntry {
-  constructor(protected oid: string, protected refs: string[]) {
-    //
-  }
-
-  public refSuffix(): string {
-    if (this.refs.length > 0) {
-      return ` (${this.refs.map((ref) => chalk.yellow(ref)).join(", ")})`;
-    } else {
-      return "";
-    }
-  }
-
-  public abstract toString(): string;
-
-  public addToQuery(_: string): string {
-    return "";
-  }
-
-  public acceptResponse(_: any): void {
-    //
-  }
-
-  public open(): void {
-    //
-  }
-}
-
-class PullRequestEntry extends LogEntry {
-  private apiData: {title: string, url: string} | null;
-
-  constructor(oid: string, private num: number, private headRef: string, refs: string[]) {
-    super(oid, refs);
-
-    this.apiData = null;
-  }
-
-  public toString() {
-    let s = `${chalk.gray(this.oid)} : #${chalk.bold.green(this.num.toString())}`;
-    if (this.apiData !== null) {
-      s += `: ${chalk.bold(this.apiData.title)}`;
-    } else {
-      s += ` (${chalk.gray(this.headRef)})`;
-    }
-    s += this.refSuffix();
-    return s;
-  }
-
-  public addToQuery(varName: string): string {
-    return ` ${varName}: pullRequest(number: ${this.num.toString()}) { title url }`;
-  }
-
-  public acceptResponse(result: any): void {
-    this.apiData = {
-      title: result.title,
-      url: result.url,
-    };
-  }
-
-  public open() {
-    if (this.apiData === null) {
-      return Promise.resolve();
-    }
-
-    return open(this.apiData.url);
-  }
-}
-
-class DirectCommitEntry extends LogEntry {
-  constructor(oid: string, private summary: string, refs: string[]) {
-    super(oid, refs);
-  }
-
-  public toString() {
-    let s = `${chalk.gray(this.oid)} : ${chalk.bold(this.summary)}`;
-    s += this.refSuffix();
-    return s;
-  }
 }
 
 async function query(owner: string, name: string, logEntries: LogEntry[]): Promise<void> {
