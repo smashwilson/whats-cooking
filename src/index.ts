@@ -236,6 +236,7 @@ async function main() {
   await query(nwo.owner, nwo.name, entries);
 
   for (const entry of entries) {
+    /* tslint:disable-next-line:no-console */
     console.log(entry.toString());
   }
 
