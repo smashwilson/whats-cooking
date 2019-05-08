@@ -1,47 +1,49 @@
 #!/usr/bin/env node
-import cli from 'cli';
-import {spawn, execFile} from 'child_process';
-import chalk from 'chalk';
+import chalk from "chalk";
+import {execFile, spawn} from "child_process";
+import cli from "cli";
 
-import {graphql} from './graphql';
+import {DirectCommitEntry} from "./direct-commit-entry";
+import {graphql} from "./graphql";
+import {PullRequestEntry} from "./pull-request-entry";
 
-cli.enable('version', 'status')
+cli.enable("version", "status");
 
 const options = cli.parse({
-  path: ['p', 'path to git repository on disk (default: .)', 'string', '.'],
-  from: ['f', 'git revision to start from', 'string', null],
-  to: ['t', 'git revision to stop at', 'string', null],
-  open: ['o', 'open a browser tab on each detected PR', 'bool', false],
-})
+  path: ["p", "path to git repository on disk (default: .)", "string", "."],
+  from: ["f", "git revision to start from", "string", null],
+  to: ["t", "git revision to stop at", "string", null],
+  open: ["o", "open a browser tab on each detected PR", "bool", false],
+});
 
 if (!options.path || !options.from || !options.to) {
-  cli.fatal('--from and --to arguments are required.')
+  cli.fatal("--from and --to arguments are required.");
 }
 
 function git(...args: string[]): Promise<string> {
   return new Promise((resolve, reject) => {
-    const child = spawn('git', args, {
-      stdio: ['ignore', 'pipe', process.stderr],
-    })
-    child.stdout.setEncoding('utf8');
+    const child = spawn("git", args, {
+      stdio: ["ignore", "pipe", process.stderr],
+    });
+    child.stdout.setEncoding("utf8");
 
-    let finished = false
+    let finished = false;
     function finish(error?: Error) {
       if (!finished) {
         finished = true;
         if (error) {
           reject(error);
         } else {
-          resolve(output.join(''));
-        };
+          resolve(output.join(""));
+        }
       }
     }
 
-    let output: string[] = [];
-    child.stdout.on('data', (chunk: string) => output.push(chunk));
+    const output: string[] = [];
+    child.stdout.on("data", (chunk: string) => output.push(chunk));
 
-    child.on('error', finish)
-    child.on('exit', (code, signal) => {
+    child.on("error", finish);
+    child.on("exit", (code, signal) => {
       if (code === 0) {
         finish();
       } else if (code !== null) {
@@ -49,106 +51,26 @@ function git(...args: string[]): Promise<string> {
       } else {
         reject(new Error(`Killed by signal ${signal}`));
       }
-    })
-  })
+    });
+  });
 }
 
 function open(...args: string[]) {
   return new Promise((resolve, reject) => {
-    execFile('open', args, {encoding: 'utf8'}, error => {
+    execFile("open", args, {encoding: "utf8"}, (error) => {
       if (error) {
         reject(error);
         return;
       }
 
       resolve();
-    })
-  })
-}
-
-abstract class LogEntry {
-  constructor(protected oid: string, protected refs: string[]) {
-    //
-  }
-
-  refSuffix(): string {
-    if (this.refs.length > 0) {
-      return ` (${this.refs.map(ref => chalk.yellow(ref)).join(', ')})`;
-    } else {
-      return '';
-    }
-  }
-
-  abstract toString(): string;
-
-  addToQuery(_varName: string): string {
-    return '';
-  }
-
-  acceptResponse(_result: any): void {
-    //
-  }
-
-  open(): void {
-    //
-  }
-}
-
-class PullRequestEntry extends LogEntry {
-  private apiData: {title: string, url: string} | null;
-
-  constructor(oid: string, private num: number, private headRef: string, refs: string[]) {
-    super(oid, refs);
-
-    this.apiData = null;
-  }
-
-  toString() {
-    let s = `${chalk.gray(this.oid)} : #${chalk.bold.green(this.num.toString())}`;
-    if (this.apiData !== null) {
-      s += `: ${chalk.bold(this.apiData.title)}`
-    } else {
-      s += ` (${chalk.gray(this.headRef)})`;
-    }
-    s += this.refSuffix();
-    return s;
-  }
-
-  addToQuery(varName: string): string {
-    return ` ${varName}: pullRequest(number: ${this.num.toString()}) { title url }`
-  }
-
-  acceptResponse(result: any): void {
-    this.apiData = {
-      title: result.title,
-      url: result.url,
-    };
-  }
-
-  open() {
-    if (this.apiData === null) {
-      return Promise.resolve();
-    }
-
-    return open(this.apiData.url);
-  }
-}
-
-class DirectCommitEntry extends LogEntry {
-  constructor(oid: string, private summary: string, refs: string[]) {
-    super(oid, refs);
-  }
-
-  toString() {
-    let s = `${chalk.gray(this.oid)} : ${chalk.bold(this.summary)}`
-    s += this.refSuffix();
-    return s;
-  }
+    });
+  });
 }
 
 async function query(owner: string, name: string, logEntries: LogEntry[]): Promise<void> {
-  let q = 'query($owner: String!, $name: String!) {';
-  q += '  repository(owner: $owner, name: $name) {';
+  let q = "query($owner: String!, $name: String!) {";
+  q += "  repository(owner: $owner, name: $name) {";
 
   const indexByName: Map<string, number> = new Map();
   let atLeastOne = false;
@@ -160,8 +82,8 @@ async function query(owner: string, name: string, logEntries: LogEntry[]): Promi
     atLeastOne = true;
   }
 
-  q += '  }';
-  q += '}';
+  q += "  }";
+  q += "}";
 
   if (!atLeastOne) {
     return;
@@ -170,31 +92,33 @@ async function query(owner: string, name: string, logEntries: LogEntry[]): Promi
   const response = await graphql(q, {owner, name});
 
   for (const responseName in response.data.repository) {
-    const prResponse: any = response.data.repository[responseName];
-    const index = indexByName.get(responseName)
-    if (index === undefined) {
-      throw new Error(`Unexpected response name: ${responseName}`);
+    if (response.data.repository.hasOwnProperty(responseName)) {
+      const prResponse: any = response.data.repository[responseName];
+      const index = indexByName.get(responseName);
+      if (index === undefined) {
+        throw new Error(`Unexpected response name: ${responseName}`);
+      }
+      const entry = logEntries[index];
+      entry.acceptResponse(prResponse);
     }
-    const entry = logEntries[index];
-    entry.acceptResponse(prResponse);
   }
 }
 
 async function main() {
-  process.chdir(options.path)
+  process.chdir(options.path);
 
-  const remotes = await git('remote', '-v').then(stdout => stdout.split(/\n/).filter(line => line.length > 0))
-  const repos = remotes.map(remote => {
+  const remotes = await git("remote", "-v").then((stdout) => stdout.split(/\n/).filter((line) => line.length > 0));
+  const repos = remotes.map((remote) => {
     const [remoteName, url] = remote.split(/\s+/);
-    const m = /(?:https:\/\/|git@)github\.com(?::|\/)([^\/]+)\/([^.]+)\.git/.exec(url)
+    const m = /(?:https:\/\/|git@)github\.com(?::|\/)([^\/]+)\/([^.]+)\.git/.exec(url);
     if (m) {
-      return {remoteName, owner: m[1], name: m[2]}
+      return {remoteName, owner: m[1], name: m[2]};
     } else {
-      return null
+      return null;
     }
-  })
-  const upstream = repos.find(each => (each === null ? false : each.remoteName === 'upstream'));
-  const origin = repos.find(each => (each === null ? false : each.remoteName === 'origin'));
+  });
+  const upstream = repos.find((each) => (each === null ? false : each.remoteName === "upstream"));
+  const origin = repos.find((each) => (each === null ? false : each.remoteName === "origin"));
   const dotcom = repos.filter(Boolean);
   let maybeNwo: {owner: string, name: string} | null = null;
   if (upstream) {
@@ -206,22 +130,22 @@ async function main() {
     maybeNwo = {owner: casted.owner, name: casted.name};
   }
   if (maybeNwo === null) {
-    cli.fatal(`Unable to determine GitHub repository from remotes.\n${remotes.join('\n')}`);
+    cli.fatal(`Unable to determine GitHub repository from remotes.\n${remotes.join("\n")}`);
   }
   const nwo = maybeNwo as {owner: string, name: string};
 
   cli.debug(`Inferred GitHub repository: ${nwo.owner}/${nwo.name}`);
 
   const logLines = await git(
-    'log', '--first-parent', options.to, `^${options.from}`,
-    '--format=format:%h%x00%s%x00%D',
-  ).then(stdout => stdout.split(/\n/).filter(line => line.length > 0))
+    "log", "--first-parent", options.to, `^${options.from}`,
+    "--format=format:%h%x00%s%x00%D",
+  ).then((stdout) => stdout.split(/\n/).filter((line) => line.length > 0));
   cli.debug(`Read ${logLines.length} log lines.`);
 
   const entries: LogEntry[] = [];
   for (const line of logLines) {
-    const [oid, summary, describe] = line.split('\x00');
-    const refs = describe.split(/\s*,\s*/).filter(each => each.length > 0);
+    const [oid, summary, describe] = line.split("\x00");
+    const refs = describe.split(/\s*,\s*/).filter((each) => each.length > 0);
 
     const m = /^Merge pull request #(\d+) from (.*)/.exec(summary);
     if (m) {
@@ -234,20 +158,21 @@ async function main() {
   await query(nwo.owner, nwo.name, entries);
 
   for (const entry of entries) {
+    /* tslint:disable-next-line:no-console */
     console.log(entry.toString());
   }
 
   if (options.open) {
     await Promise.all(
-      entries.map(entry => entry.open()),
+      entries.map((entry) => entry.open()),
     );
   }
 }
 
 main().then(
   () => process.exit(0),
-  err => {
+  (err) => {
     cli.fatal(err.stack);
     process.exit(1);
-  }
-)
+  },
+);
