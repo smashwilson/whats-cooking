@@ -170,13 +170,15 @@ async function query(owner: string, name: string, logEntries: LogEntry[]): Promi
   const response = await graphql(q, {owner, name});
 
   for (const responseName in response.data.repository) {
-    const prResponse: any = response.data.repository[responseName];
-    const index = indexByName.get(responseName);
-    if (index === undefined) {
-      throw new Error(`Unexpected response name: ${responseName}`);
+    if (response.data.repository.hasOwnProperty(responseName)) {
+      const prResponse: any = response.data.repository[responseName];
+      const index = indexByName.get(responseName);
+      if (index === undefined) {
+        throw new Error(`Unexpected response name: ${responseName}`);
+      }
+      const entry = logEntries[index];
+      entry.acceptResponse(prResponse);
     }
-    const entry = logEntries[index];
-    entry.acceptResponse(prResponse);
   }
 }
 
