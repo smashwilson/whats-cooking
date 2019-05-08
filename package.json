@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/smashwilson/whats-cooking#readme",
   "devDependencies": {
-    "tslint": "^5.11.0",
+    "tslint": "5.16.0",
     "typescript": "^2.9.2"
   },
   "dependencies": {
