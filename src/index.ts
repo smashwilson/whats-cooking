@@ -5,6 +5,7 @@ import cli from "cli";
 
 import {DirectCommitEntry} from "./direct-commit-entry";
 import {graphql} from "./graphql";
+import {LogEntry} from "./log-entry";
 import {PullRequestEntry} from "./pull-request-entry";
 
 cli.enable("version", "status");
