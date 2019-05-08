@@ -1,4 +1,19 @@
+import {execFile} from "child_process";
+
 import {LogEntry} from "./log-entry";
+
+function open(...args: string[]) {
+  return new Promise((resolve, reject) => {
+    execFile("open", args, {encoding: "utf8"}, (error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve();
+    });
+  });
+}
 
 export class PullRequestEntry extends LogEntry {
   private apiData: {title: string, url: string} | null;
@@ -10,14 +25,7 @@ export class PullRequestEntry extends LogEntry {
   }
 
   public toString() {
-    let s = `${chalk.gray(this.oid)} : #${chalk.bold.green(this.num.toString())}`;
-    if (this.apiData !== null) {
-      s += `: ${chalk.bold(this.apiData.title)}`;
-    } else {
-      s += ` (${chalk.gray(this.headRef)})`;
-    }
-    s += this.refSuffix();
-    return s;
+    return `- [ ] #${this.num.toString()}: ${this.apiData ? this.apiData.title : this.headRef}`;
   }
 
   public addToQuery(varName: string): string {

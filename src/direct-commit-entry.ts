@@ -6,8 +6,6 @@ export class DirectCommitEntry extends LogEntry {
   }
 
   public toString() {
-    let s = `${chalk.gray(this.oid)} : ${chalk.bold(this.summary)}`;
-    s += this.refSuffix();
-    return s;
+    return `- [ ] ${this.oid}: ${this.summary}`;
   }
 }
