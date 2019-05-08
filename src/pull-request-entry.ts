@@ -1,4 +1,19 @@
+import {execFile} from "child_process";
+
 import {LogEntry} from "./log-entry";
+
+function open(...args: string[]) {
+  return new Promise((resolve, reject) => {
+    execFile("open", args, {encoding: "utf8"}, (error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve();
+    });
+  });
+}
 
 export class PullRequestEntry extends LogEntry {
   private apiData: {title: string, url: string} | null;

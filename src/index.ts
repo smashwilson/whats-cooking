@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import chalk from "chalk";
-import {execFile, spawn} from "child_process";
+import {spawn} from "child_process";
 import cli from "cli";
 
 import {DirectCommitEntry} from "./direct-commit-entry";
@@ -51,19 +51,6 @@ function git(...args: string[]): Promise<string> {
       } else {
         reject(new Error(`Killed by signal ${signal}`));
       }
-    });
-  });
-}
-
-function open(...args: string[]) {
-  return new Promise((resolve, reject) => {
-    execFile("open", args, {encoding: "utf8"}, (error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      resolve();
     });
   });
 }
